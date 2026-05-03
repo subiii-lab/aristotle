@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aristotle's 12 virtues — what do you actually value?</title>
+<meta name="description" content="An interactive flashcard tool for ranking Aristotle's 12 moral virtues by what matters to you, and writing your own reflections.">
+<meta property="og:title" content="Aristotle's 12 virtues — what do you actually value?">
+<meta property="og:description" content="Drag to rank. Flip to reflect. A small tool for thinking about your own values.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #f4ede0;
+    --paper-deep: #ebe1cf;
+    --card: #fefcf6;
+    --card-shadow: rgba(60, 40, 20, 0.12);
+    --card-shadow-strong: rgba(60, 40, 20, 0.22);
+    --rule-line: rgba(150, 120, 100, 0.22);
+    --margin-line: #d4928a;
+    --ink: #2a2418;
+    --ink-soft: #5a4f3e;
+    --ink-faded: #8a7e6a;
+    --hand: #1e3a5f;
+    --hand-red: #a83232;
+    --tape: rgba(230, 215, 140, 0.55);
+    --accent: #b8341f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(180, 140, 90, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(160, 120, 80, 0.05) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(200, 170, 130, 0.04) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 20px 96px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(34px, 5.5vw, 48px);
+    line-height: 1.05;
+    margin: 0 0 14px;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 0 auto 8px;
+    max-width: 540px;
+  }
+
+  .attribution {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 18px;
+    color: var(--ink-faded);
+    margin: 0;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding-top: 28px;
+    border-top: 1px dashed rgba(90, 79, 62, 0.25);
+  }
+
+  .btn {
+    background: var(--card);
+    border: 1px solid rgba(90, 79, 62, 0.25);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 2px var(--card-shadow);
+  }
+
+  .btn:hover {
+    background: #fff;
+    border-color: rgba(90, 79, 62, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--card-shadow);
+  }
+  .btn:active { transform: translateY(0); }
+
+  .btn.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .btn.primary:hover { background: #1a1610; }
+
+  .progress {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 18px;
+    color: var(--ink-faded);
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .virtue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+  }
+
+  .virtue-card {
+    position: relative;
+    background: var(--card);
+    border-radius: 3px;
+    box-shadow:
+      0 1px 2px var(--card-shadow),
+      0 4px 12px var(--card-shadow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.15s;
+    transform-origin: center;
+    cursor: default;
+    overflow: visible;
+  }
+
+  /* Subtle organic rotations */
+  .virtue-card:nth-child(odd)  { transform: rotate(-0.4deg); }
+  .virtue-card:nth-child(even) { transform: rotate(0.3deg); }
+  .virtue-card:nth-child(3n)   { transform: rotate(0.5deg); }
+  .virtue-card:nth-child(5n)   { transform: rotate(-0.6deg); }
+
+  .virtue-card:hover {
+    box-shadow:
+      0 2px 4px var(--card-shadow),
+      0 10px 28px var(--card-shadow-strong);
+    transform: translateY(-2px) rotate(0deg);
+  }
+
+  .virtue-card.dragging {
+    opacity: 0.4;
+    transform: rotate(2deg) scale(1.02);
+  }
+
+  .virtue-card.drag-over {
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 4px 12px var(--card-shadow-strong);
+  }
+
+  /* Tape effect at top */
+  .virtue-card::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 84px;
+    height: 22px;
+    background: var(--tape);
+    border-left: 1px dashed rgba(160, 130, 60, 0.3);
+    border-right: 1px dashed rgba(160, 130, 60, 0.3);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* The card surface — looks like an index card with rule lines */
+  .virtue-card .face {
+    position: relative;
+    padding: 28px 24px 22px 80px;
+    min-height: 100px;
+    border-radius: 3px;
+    background-color: var(--card);
+    background-image:
+      linear-gradient(to bottom, transparent 39px, var(--rule-line) 39px, var(--rule-line) 40px, transparent 40px),
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 31px,
+        var(--rule-line) 31px,
+        var(--rule-line) 32px
+      );
+    background-position: 0 8px, 0 8px;
+  }
+
+  /* Red margin line */
+  .virtue-card .face::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 60px;
+    width: 1px;
+    background: var(--margin-line);
+    opacity: 0.5;
+  }
+
+  /* Rank number — handwritten in red */
+  .rank-num {
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--hand-red);
+    line-height: 1;
+    z-index: 3;
+    user-select: none;
+    cursor: grab;
+    border-radius: 50%;
+    transition: background 0.15s;
+  }
+
+  .rank-num:hover {
+    background: rgba(168, 50, 50, 0.08);
+  }
+
+  .rank-num:active { cursor: grabbing; }
+
+  .grip-hint {
+    position: absolute;
+    top: 52px;
+    left: 18px;
+    width: 36px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    color: var(--ink-faded);
+    letter-spacing: 1px;
+    opacity: 0.55;
+    z-index: 3;
+    user-select: none;
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+
+  .face-front {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .face-front .name-block { flex: 1; min-width: 0; }
+
+  .face-front .name {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 1.05;
+    color: var(--hand);
+    letter-spacing: 0.5px;
+  }
+
+  .face-front .hint {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  .face-back { display: none; }
+  .virtue-card.flipped .face-front { display: none; }
+  .virtue-card.flipped .face-back { display: block; }
+
+  .face-back .back-name {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--hand);
+    margin: 0 0 6px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+  }
+
+  .face-back .back-hint {
+    font-family: 'Architects Daughter', cursive;
+    font-size: 14px;
+    color: var(--ink-faded);
+    margin: 0 0 10px;
+  }
+
+  .face-back textarea {
+    width: 100%;
+    min-height: 96px;
+    resize: vertical;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 18px;
+    line-height: 32px;
+    padding: 0;
+    margin-top: 4px;
+    border: none;
+    background: transparent;
+    color: var(--hand);
+    letter-spacing: 0.3px;
+    display: block;
+  }
+
+  .face-back textarea:focus { outline: none; }
+
+  .face-back textarea::placeholder {
+    color: var(--ink-faded);
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  .back-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .virtue-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+    z-index: 3;
+    position: relative;
+  }
+
+  .arrow-btn {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(90, 79, 62, 0.2);
+    color: var(--ink-soft);
+    font-family: 'Architects Daughter', cursive;
+    font-size: 14px;
+    padding: 4px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .arrow-btn:hover {
+    background: #fff;
+    color: var(--ink);
+    border-color: rgba(90, 79, 62, 0.4);
+  }
+
+  .move-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .move-btns button {
+    width: 22px;
+    height: 18px;
+    padding: 0;
+    font-size: 9px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(90, 79, 62, 0.15);
+    border-radius: 2px;
+    cursor: pointer;
+    color: var(--ink-faded);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .move-btns button:hover:not(:disabled) {
+    background: #fff;
+    color: var(--ink);
+    border-color: rgba(90, 79, 62, 0.35);
+  }
+
+  .move-btns button:disabled { opacity: 0.2; cursor: not-allowed; }
+
+  .virtue-card.has-note::after {
+    content: '✓';
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 18px;
+    color: var(--accent);
+    z-index: 2;
+    font-weight: 400;
+  }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 28px;
+    border-top: 1px dashed rgba(90, 79, 62, 0.25);
+    font-family: 'Architects Daughter', cursive;
+    font-size: 18px;
+    color: var(--ink-faded);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  footer a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-faded);
+  }
+  footer a:hover { color: var(--ink); }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(40, 30, 15, 0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 24px;
+    backdrop-filter: blur(2px);
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 6px;
+    max-width: 580px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(40, 30, 15, 0.4);
+    transform: rotate(-0.3deg);
+  }
+  .modal-header {
+    padding: 20px 24px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    margin: 0; font-size: 22px; font-weight: 500;
+  }
+  .close-x {
+    background: transparent; border: none; color: var(--ink-soft);
+    font-size: 24px; cursor: pointer; padding: 0; width: 28px; height: 28px;
+    line-height: 1;
+  }
+  .modal-body { padding: 0 24px 16px; overflow-y: auto; flex: 1; }
+  .modal-body textarea {
+    width: 100%; min-height: 280px;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 19px;
+    line-height: 1.6;
+    padding: 16px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid rgba(90, 79, 62, 0.2);
+    border-radius: 4px;
+    resize: vertical;
+  }
+  .modal-footer {
+    padding: 12px 24px 20px;
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 10px 20px; border-radius: 4px;
+    font-family: 'Architects Daughter', cursive; font-size: 18px;
+    opacity: 0; transition: opacity 0.2s; pointer-events: none;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 560px) {
+    .container { padding: 36px 14px 72px; }
+    .virtue-card .face { padding: 26px 16px 18px 64px; }
+    .virtue-card .face::before { left: 50px; }
+    .rank-num { font-size: 22px; width: 32px; height: 32px; left: 12px; }
+    .grip-hint { left: 12px; width: 32px; }
+    .face-front { flex-direction: column; gap: 12px; }
+    .face-front .name { font-size: 26px; }
+    .face-front .hint { font-size: 15px; }
+    .virtue-actions { align-self: flex-end; }
+    .virtue-card::before { width: 60px; }
+    h1 { font-size: 32px; }
+    .face-back textarea { font-size: 17px; line-height: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Aristotle's 12 virtues</h1>
+    <p class="subtitle">Drag to rank by what matters to you. Tap a card to flip it and write what the virtue means to you, or why it does — or doesn't.</p>
+    <p class="attribution">~ from the Nicomachean Ethics ~</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn" id="reset-order">Reset order</button>
+    <button class="btn" id="export-notes">Export reflections</button>
+    <button class="btn" id="clear-notes">Clear all</button>
+    <span class="progress" id="progress">0 of 12 reflected on</span>
+  </div>
+
+  <ul class="virtue-list" id="virtue-list"></ul>
+
+  <footer>
+    saved in your browser · nothing leaves this page<br>
+    <a href="https://en.wikipedia.org/wiki/Nicomachean_Ethics" target="_blank" rel="noopener">about the source</a>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Your reflections</h3>
+      <button class="close-x" id="close-modal" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="export-text" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="download-btn">Download .txt</button>
+      <button class="btn primary" id="copy-btn">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function(){
+  const VIRTUES = [
+    { name: 'Courage',       blurb: 'between cowardice and recklessness' },
+    { name: 'Temperance',    blurb: 'between insensibility and indulgence' },
+    { name: 'Liberality',    blurb: 'between stinginess and prodigality' },
+    { name: 'Magnificence',  blurb: 'between pettiness and vulgarity' },
+    { name: 'Magnanimity',   blurb: 'between meekness and vanity' },
+    { name: 'Ambition',      blurb: 'between sloth and over-ambition' },
+    { name: 'Patience',      blurb: 'between apathy and irascibility' },
+    { name: 'Truthfulness',  blurb: 'between self-deprecation and boastfulness' },
+    { name: 'Wittiness',     blurb: 'between boorishness and buffoonery' },
+    { name: 'Friendliness',  blurb: 'between contentiousness and obsequiousness' },
+    { name: 'Modesty',       blurb: 'between shamelessness and shyness' },
+    { name: 'Justice',       blurb: 'between selfishness and selflessness' }
+  ];
+
+  const STORAGE_KEY = 'aristotle-virtues-v2';
+  const list = document.getElementById('virtue-list');
+  const progressEl = document.getElementById('progress');
+  const modal = document.getElementById('modal');
+  const exportText = document.getElementById('export-text');
+  const toast = document.getElementById('toast');
+
+  let state = loadState();
+  let dragId = null;
+
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 12 && parsed.every(v => v.name && typeof v.note === 'string')) {
+          return parsed.map(v => ({ ...v, flipped: false }));
+        }
+      }
+    } catch(e) {}
+    return VIRTUES.map((v,i) => ({ ...v, id: 'v'+i, note: '', flipped: false }));
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.map(v => ({
+        id: v.id, name: v.name, blurb: v.blurb, note: v.note
+      }))));
+    } catch(e) {}
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  }
+
+  function render() {
+    list.innerHTML = '';
+    state.forEach((v, idx) => {
+      const li = document.createElement('li');
+      li.className = 'virtue-card' + (v.flipped ? ' flipped' : '') + (v.note.trim() ? ' has-note' : '');
+      li.dataset.id = v.id;
+
+      const rankEl = document.createElement('div');
+      rankEl.className = 'rank-num';
+      rankEl.draggable = true;
+      rankEl.title = 'Drag to reorder';
+      rankEl.textContent = (idx + 1);
+      li.appendChild(rankEl);
+
+      const grip = document.createElement('div');
+      grip.className = 'grip-hint';
+      grip.textContent = 'drag';
+      li.appendChild(grip);
+
+      const face = document.createElement('div');
+      face.className = 'face';
+
+      const front = document.createElement('div');
+      front.className = 'face-front';
+      const frontInfo = document.createElement('div');
+      frontInfo.className = 'name-block';
+      frontInfo.innerHTML =
+        '<div class="name">' + v.name + '</div>' +
+        '<div class="hint">' + v.blurb + '</div>';
+      front.appendChild(frontInfo);
+
+      const actions = document.createElement('div');
+      actions.className = 'virtue-actions';
+
+      const moveBtns = document.createElement('div');
+      moveBtns.className = 'move-btns';
+      const upBtn = document.createElement('button');
+      upBtn.textContent = '▲'; upBtn.title = 'Move up'; upBtn.disabled = idx === 0;
+      const downBtn = document.createElement('button');
+      downBtn.textContent = '▼'; downBtn.title = 'Move down'; downBtn.disabled = idx === state.length - 1;
+      upBtn.onclick = (e) => { e.stopPropagation(); if (idx > 0) { [state[idx-1], state[idx]] = [state[idx], state[idx-1]]; saveState(); render(); } };
+      downBtn.onclick = (e) => { e.stopPropagation(); if (idx < state.length-1) { [state[idx+1], state[idx]] = [state[idx], state[idx+1]]; saveState(); render(); } };
+      moveBtns.appendChild(upBtn); moveBtns.appendChild(downBtn);
+      actions.appendChild(moveBtns);
+
+      const flipBtn = document.createElement('button');
+      flipBtn.className = 'arrow-btn';
+      flipBtn.textContent = v.note.trim() ? 'edit ✎' : 'reflect →';
+      flipBtn.onclick = (e) => {
+        e.stopPropagation();
+        v.flipped = true;
+        render();
+        setTimeout(() => {
+          const ta = li.querySelector('textarea');
+          if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+        }, 0);
+      };
+      actions.appendChild(flipBtn);
+      front.appendChild(actions);
+
+      const back = document.createElement('div');
+      back.className = 'face-back';
+      const backName = document.createElement('div');
+      backName.className = 'back-name';
+      backName.textContent = v.name;
+      const backHint = document.createElement('div');
+      backHint.className = 'back-hint';
+      backHint.textContent = v.blurb;
+      const ta = document.createElement('textarea');
+      ta.placeholder = 'what does ' + v.name.toLowerCase() + ' mean to you?';
+      ta.value = v.note;
+      ta.oninput = (e) => { v.note = e.target.value; saveState(); updateProgress(); };
+
+      const backRow = document.createElement('div');
+      backRow.className = 'back-row';
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'arrow-btn';
+      doneBtn.textContent = 'done';
+      doneBtn.onclick = (e) => { e.stopPropagation(); v.flipped = false; render(); };
+      backRow.appendChild(doneBtn);
+
+      back.appendChild(backName);
+      back.appendChild(backHint);
+      back.appendChild(ta);
+      back.appendChild(backRow);
+
+      face.appendChild(front);
+      face.appendChild(back);
+      li.appendChild(face);
+
+      // Desktop drag and drop
+      rankEl.addEventListener('dragstart', (e) => {
+        dragId = v.id;
+        li.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', v.id);
+        try {
+          const ghost = document.createElement('div');
+          ghost.style.cssText = 'position:absolute;top:-1000px;left:-1000px;font-family:Architects Daughter,cursive;font-size:22px;font-weight:400;color:#a83232;background:#fefcf6;padding:8px 18px;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+          ghost.textContent = v.name;
+          document.body.appendChild(ghost);
+          e.dataTransfer.setDragImage(ghost, 30, 20);
+          setTimeout(() => ghost.remove(), 0);
+        } catch(_) {}
+      });
+      rankEl.addEventListener('dragend', () => {
+        dragId = null;
+        li.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      });
+      li.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragId && dragId !== v.id) li.classList.add('drag-over');
+      });
+      li.addEventListener('dragleave', (e) => {
+        if (e.currentTarget === li) li.classList.remove('drag-over');
+      });
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        li.classList.remove('drag-over');
+        const draggedId = e.dataTransfer.getData('text/plain');
+        if (!draggedId || draggedId === v.id) return;
+        const fromIdx = state.findIndex(x => x.id === draggedId);
+        const toIdx = state.findIndex(x => x.id === v.id);
+        if (fromIdx === -1 || toIdx === -1) return;
+        const [moved] = state.splice(fromIdx, 1);
+        state.splice(toIdx, 0, moved);
+        saveState();
+        render();
+      });
+
+      // Touch support for mobile drag
+      let touchStart = null;
+      let touchCurrent = null;
+      rankEl.addEventListener('touchstart', (e) => {
+        touchStart = e.touches[0];
+        dragId = v.id;
+        li.classList.add('dragging');
+      }, { passive: true });
+      rankEl.addEventListener('touchmove', (e) => {
+        if (!touchStart) return;
+        e.preventDefault();
+        touchCurrent = e.touches[0];
+        const elBelow = document.elementFromPoint(touchCurrent.clientX, touchCurrent.clientY);
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        if (elBelow) {
+          const targetCard = elBelow.closest('.virtue-card');
+          if (targetCard && targetCard !== li) targetCard.classList.add('drag-over');
+        }
+      }, { passive: false });
+      rankEl.addEventListener('touchend', () => {
+        if (touchCurrent) {
+          const elBelow = document.elementFromPoint(touchCurrent.clientX, touchCurrent.clientY);
+          if (elBelow) {
+            const targetCard = elBelow.closest('.virtue-card');
+            if (targetCard && targetCard !== li) {
+              const targetId = targetCard.dataset.id;
+              const fromIdx = state.findIndex(x => x.id === v.id);
+              const toIdx = state.findIndex(x => x.id === targetId);
+              if (fromIdx !== -1 && toIdx !== -1) {
+                const [moved] = state.splice(fromIdx, 1);
+                state.splice(toIdx, 0, moved);
+                saveState();
+              }
+            }
+          }
+        }
+        touchStart = null;
+        touchCurrent = null;
+        dragId = null;
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        render();
+      });
+
+      list.appendChild(li);
+    });
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const filled = state.filter(v => v.note.trim()).length;
+    progressEl.textContent = filled + ' of 12 reflected on';
+  }
+
+  function buildExportText() {
+    const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    let txt = "My ranking of Aristotle's 12 virtues\n" + date + '\n\n';
+    state.forEach((v, i) => {
+      txt += (i + 1) + '. ' + v.name + ' — ' + v.blurb + '\n';
+      if (v.note.trim()) txt += '   ' + v.note.replace(/\n/g, '\n   ') + '\n';
+      txt += '\n';
+    });
+    return txt;
+  }
+
+  document.getElementById('reset-order').onclick = () => {
+    state.sort((a, b) => parseInt(a.id.slice(1)) - parseInt(b.id.slice(1)));
+    saveState();
+    render();
+  };
+
+  document.getElementById('clear-notes').onclick = () => {
+    if (confirm('Clear all your reflections? This cannot be undone.')) {
+      state.forEach(v => v.note = '');
+      saveState();
+      render();
+    }
+  };
+
+  document.getElementById('export-notes').onclick = () => {
+    exportText.value = buildExportText();
+    modal.classList.add('open');
+  };
+
+  document.getElementById('close-modal').onclick = () => modal.classList.remove('open');
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+  document.getElementById('copy-btn').onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(exportText.value);
+      showToast('copied!');
+    } catch(e) {
+      exportText.select();
+      document.execCommand('copy');
+      showToast('copied!');
+    }
+  };
+
+  document.getElementById('download-btn').onclick = () => {
+    const blob = new Blob([exportText.value], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aristotle-virtues-ranking.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  render();
+})();
+</script>
+
+</body>
+</html>
